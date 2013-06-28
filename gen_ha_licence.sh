@@ -1,6 +1,6 @@
 #!/bin/bash
 #**********************************************************************
-# file: get_ha_licence.sh
+# file: gen_ha_licence.sh
 # date: 2013-06-27 14:56
 # author: (c) by Eric Yuan - <ericy@arkologc.com>
 # description: send, get and process a response email from ha.com and extract licence files
@@ -36,10 +36,10 @@ OUTPUT_HOME="/eric_scripts/output"
 ARKO_LICENCE_HOME="/home/arko/arkolicense_1_99"
 SEND_HA_EMAIL_PROGRAM="send_ha_request_email"
 MUNPACK_BIN="/usr/local/bin/munpack"
-LOG_FILE="/eric_scripts/process_ha_response_email.log"
+LOG_FILE="/eric_scripts/logs/gen_ha_licence.log"
 LOG_ENABLED=y
 WAIT_TIME="10"
-RETRY_TIMES="3"
+RETRY_TIMES="10"
 
 hostid1=$1
 hostid2=$2

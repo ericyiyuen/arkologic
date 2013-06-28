@@ -1,0 +1,18 @@
+Jun 28 17:04:08 Emptying /home/arko/mail/new
+Jun 28 17:04:08 Status =   INFO   
+Jun 28 17:04:09 Sending request email hostid1: 00cca45f, hostid2: 00cca45e
+Jun 28 17:04:09 Status =   INFO   
+Jun 28 17:04:09 successfuly sent request email
+Jun 28 17:04:09 Status =  SUCCESS 
+Jun 28 17:04:12 The response email has arrived yet, retrying
+Jun 28 17:04:12 Status =   INFO   
+Jun 28 17:04:28 successfuly got response email /home/arko/mail/new/1372410267.M980851P19211Q0R9a82adaee0af1981.fileserver
+Jun 28 17:04:28 Status =  SUCCESS 
+Jun 28 17:04:28 Extracting licence files from email file
+Jun 28 17:04:28 Status =   INFO   
+Jun 28 17:04:28 successfuly got ha licence files 
+Jun 28 17:04:28 Status =  SUCCESS 
+Jun 28 17:04:28 successfuly got ha licence files 
+Jun 28 17:04:28 Status =   INFO   
+Jun 28 17:04:28 successfuly generated HA licence file ArkoDev_ha_licfile
+Jun 28 17:04:28 Status =  SUCCESS 
