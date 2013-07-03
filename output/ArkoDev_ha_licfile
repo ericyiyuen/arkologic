@@ -2,9 +2,10 @@
 name=ha
 status=enabled
 expiry_date=9999-12-01
-license_key=0WMTE60ZM0EK3PNFQWPSZBP6RZZ1P8
-3rd_party_key_00cca45f=mrc6ltronjENZiugJYl4x1XX
-3rd_party_key_00cca45e=EPjKF.ronjE4uPHyJYl4x1XX
+license_key=0FABC5CYJOQINX7BZEFHLFSD4ZZ1P8
+3rd_party_key_00cca45f=mhQEs6TznXZcWi4zq/t2SiXX
+3rd_party_key_00cca45e=oeZlUJTznXiRCaqgq/t2SiXX
 3rd_party_key_10cca45e=DkdsBT2S6QNCq8boC8I0ZUXX
+3rd_party_key_00dca67f=hqvCHtWUKtN5JOxiK11i/iXX
 [LICENSE_ID]
 license_id=ArkoDev

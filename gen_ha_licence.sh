@@ -8,7 +8,7 @@
 
 if [ "$#" -lt 2 ]
 then
-    echo "Usage: $0 [-i licence_id] [hostid1] [hostid2]"
+    echo "Usage: $0 [-i licence_id] [-e expiry_date] [hostid1] [hostid2]"
     exit 1
 fi
 
@@ -122,7 +122,7 @@ cp $hostid2_licence_file $OUTPUT_HOME
 
 msg_success "successfuly got ha licence files "
 
-msg_info "successfuly got ha licence files "
+msg_info "begin to generate arkologic HA licence file"
 cd $ARKO_LICENCE_HOME
 
 ./genlicfile -i $arko_licence_id \
@@ -136,5 +136,5 @@ $hostid2_licence_file" ||
 }    
 
 
-msg_success "successfuly generated HA licence file ${arko_licence_id}_ha_licfile"
+msg_success "successfuly generated arkologic HA licence file ${arko_licence_id}_ha_licfile"
 
