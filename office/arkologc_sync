@@ -1,0 +1,16 @@
+#! /bin/bash
+
+if [ "$#" -ne 3 ]
+then
+  echo "Usage:arkologic_sync_all [host] [local_path] [remote_path]"
+  exit 1
+fi
+lpath="$2"
+rpath="$3"
+[ -d $2 ] && {
+  lpath=${lpath%/}\/
+}
+[ -d $3 ] && {
+  rpath=${rpath%/}\/
+}
+/usr/bin/rsync -Pvaz  --progress --delete-excluded --rsh "ssh -o StrictHostKeyChecking=no " --recursive --rsync-path "rsync" "$lpath" root@$1:"$rpath"

@@ -1,0 +1,10 @@
+#!/bin/bash
+while read host; do
+  echo -n "$host "
+  if [[ $host == "192.168.234.106" ]]; then
+    ssh -f root@$host "dladm show-phys -m | grep e1000g0| cut -d ' ' -f 9"
+  else 
+    ssh -f root@$host "dladm show-phys -m | grep mgmtintf0 | cut -d ' ' -f 7"
+  fi
+  sleep 1
+done < qa_hosts | tee qa_hosts_mac_adds
