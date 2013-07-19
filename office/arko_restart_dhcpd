@@ -1,0 +1,15 @@
+#!/bin/bash
+#**********************************************************************
+# file: arko_restart_dhcp
+# date: 2013-07-19 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: automatically restart both slave and master dhcpd servers
+# **********************************************************************
+
+dhcpd_conf=/etc/dhcp/dhcpd.conf
+echo "Restarting Master..." >&2
+service dhcpd restart
+echo "Sync dhcpd conf to Slave..." >&2
+scp $dhcpd_conf dhcp-slave:$dhcpd_conf
+echo "Restarting Slave..." >&2
+ssh dhcp-slave service dhcpd restart
