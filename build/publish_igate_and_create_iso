@@ -1,0 +1,159 @@
+#!/bin/bash
+#**********************************************************************
+# file: publish_igate_and_create_iso
+# date: 2013-07-24 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: publish newly built illumosgate pkg and construst an iso/usb
+# image.
+# **********************************************************************
+echo "Reading config...." >&2
+set -a
+source ./publish_igate_and_create_iso.cfg
+set +a
+cd /export/home/arko/build/build-scripts/release-build
+
+kill -9 $(pgrep python 2>/dev/null) >/dev/null 2>&1 && echo "killed possiblely mounted server"
+
+echo "[Step 1] Publish illumosgate"
+./publish_ips_component.sh illumosgate $DOWNLOAD_LOCATION/$ILLUMOS_GATE/packages/i386/nightly-nd/repo.redist $BUILD_LABEL
+
+
+echo "Refreshing meta data for repo $PUBLISHER_MNTIPS..."
+
+pkgrepo refresh -s $PUBLISHER_MNTIPS
+
+
+echo "[Step 2] Preparing unityos_component_version file"
+
+#for testing purpose, disable the following when in production
+#BUILD_LABEL=1.99.0.20130716182859
+#OUTPUTPATHISO=/rpool/dc/media/1.99.0.20130716182859.iso
+#OUTPUTPATHUSB=/rpool/dc/media/1.99.0.20130716182859.usb
+#BUILD_LABEL=1.99.0.20130719105940
+#OUTPUTPATHISO=/rpool/dc/media/1.99.0.20130719105940.iso
+#OUTPUTPATHUSB=/rpool/dc/media/1.99.0.20130719105940.usb
+
+full_fmri_list=$PUBLISHER_MNTIPS/publisher/$PUBLISHERNAME/index/full_fmri_list
+[ -f $full_fmri_list ] || { echo "error find index file"; exit 1; }
+
+echo "searching illumosgate $BUILD_LABEL..."
+illumosgate_version=$(egrep "unityos/illumosgate.*$BUILD_LABEL" $full_fmri_list 2>/dev/null |  sort -d  | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$illumosgate_version" == "" ]] && { echo "no illumosgate found"; exit 1; }
+
+upstream_version=$(grep "unityos/upstream@$UNITYOS_COMPONENT_GENERAL_VERSION" $full_fmri_list 2>/dev/null| sort -d | tail -n 1 | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$upstream_version" == "" ]] && { echo "no upstream found"; exit 1; }
+
+slimsource_version=$(grep "unityos/slimsource@$UNITYOS_COMPONENT_GENERAL_VERSION" $full_fmri_list 2>/dev/null| sort -d | tail -n 1 | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$slimsource_version" == "" ]] && { echo "no slimsource found"; exit 1; }
+
+xnv_version=$(grep "unityos/xnv@$UNITYOS_COMPONENT_GENERAL_VERSION" $full_fmri_list 2>/dev/null| sort -d | tail -n 1 | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$xnv_version" == "" ]] && { echo "no xnv found"; exit 1; }
+
+pkggate_version=$(grep "unityos/pkggate@$UNITYOS_COMPONENT_GENERAL_VERSION" $full_fmri_list 2>/dev/null| sort -d | tail -n 1 | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$pkggate_version" == "" ]] && { echo "no pkggate found"; exit 1; }
+
+vpanels_version=$(grep "unityos/vpanels@$UNITYOS_COMPONENT_GENERAL_VERSION" $full_fmri_list 2>/dev/null| sort -d | tail -n 1 | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$vpanels_version" == "" ]] && { echo "no vpanels found"; exit 1; }
+
+oibuild_version=$(grep "unityos/oibuild@$UNITYOS_COMPONENT_GENERAL_VERSION" $full_fmri_list 2>/dev/null| sort -d | tail -n 1 | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$oibuild_version" == "" ]] && { echo "no oibuild found"; exit 1; }
+
+wos_version=$(grep "unityos/wos@$UNITYOS_COMPONENT_GENERAL_VERSION" $full_fmri_list 2>/dev/null| sort -d | tail -n 1 | cut -d ':' -f 2 | sed "s/\///" )
+[[ "$wos_version" == "" ]] && { echo "no wos found"; exit 1; }
+
+cat > $UNITYOS_COMPONENT_VERSION <<EOF 
+$illumosgate_version
+$upstream_version
+$slimsource_version
+$xnv_version
+$pkggate_version
+$vpanels_version
+$oibuild_version
+$wos_version
+EOF
+echo "##############components versions###############"
+cat  $UNITYOS_COMPONENT_VERSION
+echo "################################################"
+
+
+
+echo "[Step 3] Checkout unityos packages"
+./unityos_pkg_checkout_advanced.sh $UNITYOS_COMPONENT_VERSION
+
+echo "[Step 4] Create CD"
+#./create_unity_cd.sh $SERVERCDXML $BUILD_LABEL $BUILD_LABEL
+kill -9 $(pgrep python 2>/dev/null) >/dev/null 2>&1 && echo "killed possiblely mounted server"
+./create_cd_robot_local.sh $SERVERCDXML $BUILD_LABEL $BUILD_LABEL
+ISOSIZE=0
+ISOMD5=0
+USBSIZE=0
+USBMD5=0
+
+if [ -a $OUTPUTPATHISO ]
+then
+    ISOSIZE=`ls -la $OUTPUTPATHISO | awk '{print $5}'`
+    ISOMD5=`md5sum $OUTPUTPATHISO | awk '{print $1}'`
+    echo "ISOSIZE: "$ISOSIZE
+    echo "ISOMD5: "$ISOMD5
+    sudo echo $ISOMD5 > $ISONAME.iso.md5
+fi
+
+if [ -a $OUTPUTPATHUSB ]
+then
+    USBSIZE=`ls -la $OUTPUTPATHUSB | awk '{print $5}'`
+    USBMD5=`md5sum $OUTPUTPATHUSB | awk '{print $1}'`
+    echo "USBSIZE: "$USBSIZE
+    echo "USBMD5: "$USBMD5
+    sudo echo $USBMD5 > $ISONAME.usb.md5
+fi
+if [ "$ISOSIZE" == "0" ]
+then
+    echo "ISO generate failed, skip upload ISO and publish unityos"
+else
+    echo "[Step 3] Upload ISO to File Server"
+    ./mountServerResources.sh $RESOURCE_SERVERIP
+    cp $OUTPUTPATHISO $FILESERVER_MNT
+    cp $ISONAME.iso.md5 $FILESERVER_MNT
+    cp $OUTPUTPATHUSB $FILESERVER_MNT
+    cp $ISONAME.usb.md5 $FILESERVER_MNT
+    echo "[Step 4] Publish unityos"
+    echo "Refreshing meta data for repo $DOWNLOAD_LOCATION/pkg_pool..."
+    pkgrepo refresh -s $DOWNLOAD_LOCATION/pkg_pool
+    #./publish_ips_unityos.sh $UNITYOS_COMPONENT_VERSION $BUILD_LABEL
+    ./publish_unityos $UNITYOS_COMPONENT_VERSION $BUILD_LABEL
+fi
+
+echo "[Step 5] Send release email"
+cat <<EOF > $MAILFILENAME
+From: Arkologic Builder <builder@arkologic.com>
+To: ${MAILLIST// /, }
+Subject: UnityOS $BUILD_LABEL has been released
+
+UnityOS $BUILD_LABEL has been released:
+Tag: $BUILD_LABEL
+ISO name: $ISONAME.iso
+ISO size: $ISOSIZE bytes
+ISO md5: $ISOMD5
+USB name: $ISONAME.usb
+USB size: $USBSIZE bytes
+USB md5: $USBMD5
+
+Please get the ISO at 
+1) isostore on $RESOURCE_SERVERIP
+2) $FILESERVER_APACHE
+
+(This is automatically generated email. Please don't reply it)
+EOF
+if [ "$ISOSIZE" == "0" ]
+then
+    echo "No iso built..exiting"
+    exit 1
+    #mail  $MAILLIST < $MAILFILENAME
+else
+    mail $MAILLIST < $MAILFILENAME
+fi
+
+echo "cleaning up..."
+#rm -rf $DOWNLOAD_LOCATION/pkg_pool/*
+rm $ISONAME.iso.md5
+rm $ISONAME.usb.md5

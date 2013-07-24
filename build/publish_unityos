@@ -1,0 +1,102 @@
+#!/bin/bash
+#**********************************************************************
+# file: publish_unityos
+# date: 2013-07-24 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: publish unityos pkg into a specific repository folder
+# **********************************************************************
+
+if [ "$1" == "-h" ] || [ "$1" == "" ] || [ "$2" == "" ]
+then
+	echo "usage: $0 <unityos_component_version> <arko buildid>"
+	exit
+fi
+
+if [ -z $PUBLISHER_HTTPIPS ] || [ -z $PUBLISHERNAME ] || [ -z PUBLISHER_MNTIPS ]
+then
+        echo PUBLISHER_HTTPIPS or PUBLISHERNAME or PUBLISHER_MNTIPS environment variable is not set
+        exit
+fi
+
+UNITYOS_COMPONENT_VERSION=$1
+ARKO_BUILDID=$2
+#PKGIMAGEPATH=/rpool/dc/build_data/pkg_image
+ISOBUILDLOGPATH=/rpool/dc/logs/detail*
+COMPONENTP5M=unityos.p5m
+PKG_VERSION=0.151.1.2
+ARKO_PKG_VERSION=`echo $ARKO_BUILDID | cut -d'.' -f1,2,3`,5.11-$ARKO_BUILDID
+
+if false
+then
+PUBLISHER_IPS=$PUBLISHER_HTTPIPS 
+else
+REPODIR=$PUBLISHER_MNTIPS
+PUBLISHER_IPS=file://$REPODIR
+if [ ! -d $REPODIR/publisher/$PUBLISHERNAME ]
+then
+sudo pkill pkg.depotd | echo
+sudo /usr/lib/pkg.depotd -d $REPODIR --set-property publisher.prefix=$PUBLISHERNAME  --add-content --exit-ready
+fi
+fi
+
+echo "Using ARKO_PKG_VERSION: $ARKO_PKG_VERSION"
+
+rm -f $COMPONENTP5M
+
+echo "set name=pkg.fmri value=unityos@$ARKO_PKG_VERSION" > $COMPONENTP5M
+echo "set name=pkg.description value=\"UnityOS\"" >> $COMPONENTP5M
+echo "set name=pkg.summary value=\"UnityOS\"" >> $COMPONENTP5M
+for i in `cat $UNITYOS_COMPONENT_VERSION`
+do
+        echo "depend fmri=$i type=optional" >> $COMPONENTP5M
+done
+ISOBUILDLOG=`ls -lt $ISOBUILDLOGPATH | head -n 1 | awk '{print $NF}'`
+echo "Using ISOBUILDLOG: $ISOBUILDLOG"
+#isopkglist=`pkg -R $PKGIMAGEPATH list -v | grep "installed" | awk '{print $1}' | sed "s/pkg:\/\/$PUBLISHERNAME\///g"`
+isopkglist=`grep "None -> pkg:" $ISOBUILDLOG | sed "s/  None -> pkg:\/\/$PUBLISHERNAME\///g"`
+if [[ $isopkglist == "" ]]; then
+    isopkglist=`grep "Download.*Done" $ISOBUILDLOG | awk -e '{print $2}'`
+    isopkglist_fmri_tmp=$(mktemp)
+    for i in $isopkglist; do
+        fmri_tmp=''
+       # echo "grep $i\@ $DOWNLOAD_LOCATION/pkg_pool/publisher/$PUBLISHERNAME/index/full_fmri_list"
+        fmri_tmp=$(grep "pkg:/$i@" $DOWNLOAD_LOCATION/pkg_pool/publisher/$PUBLISHERNAME/index/full_fmri_list | head -n 1 | sed -e 's/pkg:\///g')
+        if [ "$fmri_tmp" != "" ]; then
+            #echo $fmri_tmp 
+            echo $fmri_tmp >> $isopkglist_fmri_tmp
+        else
+            echo "$i not found in full_fmri_list.." >&2
+        fi
+    done
+    isopkglist=$(cat $isopkglist_fmri_tmp)
+fi
+#wc -l <(echo "$isopkglist")
+#isopkglist=`grep "None -> pkg:" $ISOBUILDLOG | sed "s/  None -> pkg:\/\/$PUBLISHERNAME\///g"`
+for i in $isopkglist
+do
+    echo $i;
+    echo "depend fmri=$i type=optional" >> $COMPONENTP5M
+done
+
+#wc -l $COMPONENTP5M
+sudo pkgsend -s $PUBLISHER_IPS publish --fmri-in-manifest $COMPONENTP5M
+#more $COMPONENTP5M
+
+[ -f $isopkglist_fmri_tmp ] && rm -rf $isopkglist_fmri_tmp
+#pkgrepo -s $PUBLISHER_HTTPIPS rebuild
+#pkgrepostatus=`pkgrepo info -s $PUBLISHER_HTTPIPS | /usr/gnu/bin/grep $PUBLISHERNAME | awk '{print $3}'`
+#while [ "$pkgrepostatus" == "processing" ]
+#do
+#        echo "Waiting repo rebuild finishing"
+#        sleep 10
+#        pkgrepostatus=`pkgrepo info -s $PUBLISHER_HTTPIPS | /usr/gnu/bin/grep $PUBLISHERNAME | awk '{print $3}'`
+#done
+
+#pkgrepo -s $PUBLISHER_HTTPIPS refresh
+#pkgrepostatus=`pkgrepo info -s $PUBLISHER_HTTPIPS | /usr/gnu/bin/grep $PUBLISHERNAME | awk '{print $3}'`
+#while [ "$pkgrepostatus" == "processing" ]
+#do
+#        echo "Waiting repo refresh finishing"
+#        sleep 10
+#        pkgrepostatus=`pkgrepo info -s $PUBLISHER_HTTPIPS | /usr/gnu/bin/grep $PUBLISHERNAME | awk '{print $3}'`
+#done
