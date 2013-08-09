@@ -1,4 +1,10 @@
 #! /bin/bash
+#***********************************************************************
+# file: arkologic_rsync
+# date: 2013-08-07 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: rsync a file/dir to a specific locatoin in a remote server
+# ***********************************************************************
 
 if [ "$#" -ne 3 ]
 then

@@ -1,0 +1,18 @@
+#! /bin/bash
+#**********************************************************************
+# file: arkologic_rsync_all
+# date: 2013-08-07 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: rsync a file/dir to the same location in a remote server
+# **********************************************************************
+
+if [ "$#" -ne 2 ]
+then
+  echo "Usage:arkologic_sync_all [host] [full_path]"
+  exit 1
+fi
+rpath="$2"
+[ -d $2 ] && {
+  rpath=${rpath%/}\/
+}
+/usr/bin/rsync -Pvaz  --progress --delete-excluded --rsh "ssh -o StrictHostKeyChecking=no " --recursive --rsync-path "rsync" "$rpath" root@$1:"$rpath"

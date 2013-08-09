@@ -1,0 +1,24 @@
+#! /bin/bash
+#**********************************************************************
+# file: arkologic_rsync_from_list
+# date: 2013-08-07 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: rsync the files in a list file to a remote server
+# **********************************************************************
+
+if [ "$#" -ne 3 ]
+then
+  echo "Usage:arkologic_sync_all [host] [local_list_file] [remote_path]"
+  exit 1
+fi
+list_file="$2"
+rpath="$3"
+[ -f $2 ] || {
+    echo "No list file found"
+    exit 1
+}
+[ -d $3 ] && {
+  rpath=${rpath%/}\/
+}
+/usr/bin/rsync -Pvaz  --progress --delete-excluded --rsh "ssh -o StrictHostKeyChecking=no " --recursive --rsync-path "rsync" --files-from="$list_file" / root@$1:"$rpath"
+

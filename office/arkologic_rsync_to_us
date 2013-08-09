@@ -1,0 +1,18 @@
+#!/bin/bash
+#**********************************************************************
+# file: arkologic_rsync_to_us
+# date: 2013-08-09 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: rsync arkologic package releases and unityos images from
+# Hong Kong fileserver to US fileserver
+# **********************************************************************
+unityos_home=/home/arko/fileserver/unityos/
+release_home=/home/arko/fileserver/release/
+us_server=192.168.220.99
+us_server_dir=/from_hk/
+list_file=`mktemp`
+find $unityos_home -type f -atime -1 2>/dev/null >$list_file
+find $release_home -type f -atime -1 2>/dev/null >>$list_file
+cat $list_file
+arkologic_sync_from_list $us_server $list_file $us_server_dir
+rm -rf $list_file

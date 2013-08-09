@@ -1,6 +1,6 @@
 #!/bin/bash
 #**********************************************************************
-# file: arko_restart_dhcp
+# file: arkologic_restart_dhcp
 # date: 2013-07-19 14:56
 # author: (c) by Eric Yuan - <ericy@arkologc.com>
 # description: automatically restart both slave and master dhcpd servers
