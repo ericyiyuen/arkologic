@@ -1,0 +1,33 @@
+#!/bin/bash
+#**********************************************************************
+# file: arko_copy_unity_os_boot_archive
+# date: 2013-08-15 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: copy a unityos boot archive from an specific iso file
+# **********************************************************************
+
+if [ "$#" -lt 2 ]
+then
+    echo "Usage: $0 [iso_path] [destination_folder]" >&2
+    echo "    e.g. [$0 /mnt/isostore/1.99.0.20130814101412.iso /tmp]" >&2
+    exit 1
+fi
+mount_point=/mnt/unityos_iso
+boot_archive_path=boot/platform/i86pc/amd64/boot_archive 
+#remove trailing slash in $2
+[ -d $dest ] || { echo "$dest not exsited" >&2; exit 1; }
+#ensure dest folder trailing slash
+dest=${2%/}\/
+iso_file="$1"
+boot_archive_name=boot_archive.$(basename $iso_file | sed -e 's/\.\(iso\|ISO\)$//')
+boot_archive_dest="$dest$boot_archive_name"
+boot_archive_src="$mount_point/$boot_archive_path"
+umount $mount_point 2>&1 >/dev/null
+mkdir -p $mount_point
+echo "mounting $iso_file: $iso_file to $mount_point"
+mount -F hsfs -o ro `lofiadm -a $iso_file` $mount_point
+[ -f $boot_archive_src ] || { echo "$boot_archive_src not exsited" >&2; exit 1; }
+/bin/cp -f $boot_archive_src $boot_archive_dest
+lofiadm -d /dev/lofi/1 2>&1 >/dev/null
+umount $mount_point 2>&1 >/dev/null
+

@@ -1,0 +1,55 @@
+#!/bin/bash
+#**********************************************************************
+# file: arko_copy_unity_os_boot_archive
+# date: 2013-08-15 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: copy a unityos boot archive from an specific iso file
+# **********************************************************************
+
+if [ "$#" -lt 2 ]
+then
+    echo "Usage: $0 [boot_archive_path] [destination_folder]" >&2
+    echo "    e.g. [$0 /tmp/boot_archive.1.99.0.20130814101412 /boot_archives]" >&2
+    exit 1
+fi
+mount_point=/mnt/boot_archive
+lofi_point=/dev/lofi/1
+boot_archive_path=boot/platform/i86pc/amd64/boot_archive 
+#remove trailing slash in $2
+[ -d $dest ] || { echo "$dest not exsited" >&2; exit 1; }
+#ensure dest folder trailing slash
+dest=${2%/}\/
+boot_archive_file="$1"
+boot_archive_name=$(basename $boot_archive_file).modified
+boot_archive_dest="$dest$boot_archive_name"
+/bin/cp $boot_archive_file $boot_archive_dest.gz
+/bin/rm -rf $boot_archive_dest
+echo "gunziping to $boot_archive_dest" >&2
+/usr/bin/gunzip  $boot_archive_dest.gz
+media_fs_root_patch=/boot_archives/media-fs-root.patch
+media_fs_root_path=$mount_point/lib/svc/method/media-fs-root
+
+umount $mount_point &>/dev/null
+lofiadm -d $lofi_point &>/dev/null
+mkdir -p $mount_point
+
+echo "mounting $boot_archive_dest to $mount_point" >&2
+lofiadm -a $boot_archive_dest $lofi_point
+mount $lofi_point $mount_point
+/bin/cp -rf $media_fs_root_path /tmp/media_fs_root.org
+patch $media_fs_root_path < $media_fs_root_patch
+/bin/cp -rf $media_fs_root_path /tmp/media_fs_root
+
+#copy tmpfs mount file
+echo "copying tmpfs file" >&2 
+/bin/cp -rf /usr/lib/fs/tmpfs $mount_point/usr/lib/fs
+
+
+#umount dev
+echo "umounting boot archive image" >&2 
+umount $mount_point 2>&1 >/dev/null
+lofiadm -d $lofi_point &>/dev/null
+
+/usr/bin/gzip  $boot_archive_dest
+/usr/gnu/bin/mv $boot_archive_dest.gz  $boot_archive_dest.restore
+exit 0
