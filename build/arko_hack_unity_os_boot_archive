@@ -26,7 +26,7 @@ boot_archive_dest="$dest$boot_archive_name"
 /bin/rm -rf $boot_archive_dest
 echo "gunziping to $boot_archive_dest" >&2
 /usr/bin/gunzip  $boot_archive_dest.gz
-media_fs_root_patch=/boot_archives/media-fs-root.patch
+media_fs_root_patch=media-fs-root.patch
 media_fs_root_path=$mount_point/lib/svc/method/media-fs-root
 
 umount $mount_point &>/dev/null
@@ -47,7 +47,7 @@ echo "copying tmpfs file" >&2
 
 #umount dev
 echo "umounting boot archive image" >&2 
-umount $mount_point 2>&1 >/dev/null
+umount $mount_point &>/dev/null
 lofiadm -d $lofi_point &>/dev/null
 
 /usr/bin/gzip  $boot_archive_dest

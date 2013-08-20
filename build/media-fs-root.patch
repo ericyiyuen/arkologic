@@ -1,0 +1,37 @@
+--- /tmp/media_fs_root.org	2013-08-16 15:01:02.587459798 +0800
++++ /tmp/media_fs_root	2013-08-16 15:04:29.340723829 +0800
+@@ -105,6 +105,16 @@
+ 	fi
+ done
+ 
++# Alex hacks
++install_server=`$PRTCONF -v | $SED -n '/install_server/{;n;p;}' | /usr/bin/nawk -F "'" '{print $2}'`
++/usr/lib/fs/tmpfs/mount swap /tmp
++/usr/bin/mkdir /tmp/share
++/sbin/mount -F nfs -o vers=3 $install_server /tmp/share 2> /dev/msglog
++echo Mounted $install_server using NFSv3 > /dev/msglog
++cp -r /tmp/share/script_uo /tmp/script
++. /tmp/script/media-fs-root-1
++#End of Alex hacks
++
+ # Check if mount of /.cdrom failed.
+ $MOUNT | grep "^/.cdrom"
+ if [ $? -ne 0 ]; then
+@@ -112,6 +122,7 @@
+ 	exit $SMF_EXIT_ERR_FATAL
+ fi
+ 
++
+ # Explictly create lofi devices for solaris.zlib and 
+ # solarismisc.zlib
+ 
+@@ -156,6 +167,9 @@
+ elif [ $AUTOINSTALL = 1 ]; then
+ 	echo "Done mounting automated install image" > /dev/msglog
+ elif [ $TEXTINSTALL = 1 ]; then
++    #Alex hacks
++    . /tmp/script/media-fs-root-2
++    #End of Alex hacks
+ 	echo "Done mounting text install image" > /dev/msglog
+ fi
+ 
