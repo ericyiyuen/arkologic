@@ -1,0 +1,11 @@
+#!/bin/bash
+ba_home=/home/arko/fileserver/unityos/boot_archives
+dest_ba_home=/tftpboot/uo
+list_file=`mktemp`
+#find $iso_home -maxdepth 1 -type f -atime -1 2>/dev/null >$list_file
+find $ba_home -maxdepth 1 -type f -name 'boot_archive*' -exec basename \{\} \; 2>/dev/null >$list_file
+cat $list_file
+cd $ba_home
+/usr/local/bin/arkologic_rsync_dir_relateive_from_list pxe_server $ba_home $list_file $dest_ba_home
+rm -rf $list_file
+

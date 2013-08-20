@@ -1,0 +1,19 @@
+#!/bin/bash
+#**********************************************************************
+# file: arko_copy_unity_os_boot_archive
+# date: 2013-08-15 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: copy a unityos boot archive from an specific iso file
+# **********************************************************************
+
+if [ "$#" -lt 2 ]
+then
+    echo "Usage: $0 [iso_path] [destination_folder]" >&2
+    echo "    e.g. [$0 /mnt/isostore/1.99.0.20130814101412.iso /tmp]" >&2
+    exit 1
+fi
+/usr/local/bin/arko_copy_unity_os_boot_archive $1 /tmp
+boot_archive_path=/tmp/boot_archive.$(basename $1 | sed -e 's/\.\(iso\|ISO\)$//')
+#echo $boot_archive_path
+/usr/local/bin/arko_hack_unity_os_boot_archive $boot_archive_path $2
+
