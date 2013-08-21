@@ -1,0 +1,21 @@
+#!/bin/sh
+
+LOG=/var/log/upgrade/runonce/zpool_fix.log
+
+CURFILE=$0
+
+touch $LOG
+
+echo "+---------------+" >> $LOG
+echo "| Post-ZpoolFix |" >> $LOG
+echo "+---------------+" >> $LOG
+
+fmadm reset zfs-diagnosis >> $LOG
+fmadm reset zfs-retire >> $LOG
+
+echo "+--------------------+" >> $LOG
+echo "| Post-ZpoolFix DONE |" >> $LOG
+echo "+--------------------+" >> $LOG
+
+rm $CURFILE
+

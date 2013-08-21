@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo
+END
+dd_aio
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/dd_aio
+END
+erase_ssd.sh
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/erase_ssd.sh
+END
+network_setup.sh
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/network_setup.sh
+END
+S99PostZpoolFix
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/arkologic/!svn/ver/12153/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/S99PostZpoolFix
+END
+helper.sh
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/arkologic/!svn/ver/12153/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/helper.sh
+END
+restore.sh
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/restore.sh
+END
+get_release_version.sh
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/get_release_version.sh
+END
+create_restore_menu.sh
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/create_restore_menu.sh
+END
+media-fs-root-1
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/media-fs-root-1
+END
+media-fs-root-2
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/media-fs-root-2
+END
+restore_parallel.sh
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/restore_parallel.sh
+END
+pigz
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/arkologic/!svn/ver/12153/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/pigz
+END
+zpool_fix
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/zpool_fix
+END
+backup.sh
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/backup.sh
+END
+put_tftp.sh
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/arkologic/!svn/ver/14301/arkdevop/ArkoDeploy/trunk/goldenimage/script_uo/put_tftp.sh
+END

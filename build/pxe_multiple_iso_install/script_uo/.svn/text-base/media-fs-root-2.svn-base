@@ -1,0 +1,76 @@
+PRTCONF=/usr/sbin/prtconf
+SED=/usr/bin/sed
+AWK=/usr/bin/nawk
+
+RUN_MODE=`$PRTCONF -v | $SED -n '/run_mode/{;n;p;}' | $AWK -F "'" '{print $2}'`
+
+if [ "$RUN_MODE" == 'restore' ] || [ "$RUN_MODE" == 'post_restore' ] || [ "$RUN_MODE" == 'cd' ] || [ "$RUN_MODE" == 'restore_parallel' ] || [ "$RUN_MODE" == 'backup' ] || [ "$RUN_MODE" == 'erase_ssd' ]
+then
+	# Disable Input to Keyboard Selection
+	cat /tmp/kbd -s US-English > /tmp/script/kbd.sh
+	chmod 755 /tmp/script/kbd.sh
+	/usr/bin/cp /usr/bin/kbd /tmp
+	/usr/sbin/mount -F lofs /tmp/script/kbd.sh /usr/bin/kbd
+	
+	# Disable Input to Language Selection
+	cat /tmp/set_lang default > /tmp/script/set_lang.sh
+	chmod 755 /tmp/script/set_lang.sh
+	/usr/bin/cp /usr/sbin/set_lang /tmp
+	/usr/sbin/mount -F lofs /tmp/script/set_lang.sh /usr/sbin/set_lang
+	
+	# Tune I/O parameters
+	#/usr/bin/cp /etc/system /tmp
+	#/usr/bin/echo "set sd:sd_max_throttle=32" >> /tmp/system
+	#/usr/sbin/mount -F lofs /tmp/system /etc/system
+
+	#/usr/bin/cp /kernel/drv/sd.conf /tmp
+	#/usr/bin/echo 'sd-config-list="ATA     LITEONIT LAT-128","disksort:false, cache-nonvolatile:true";' >> /tmp/sd.conf
+	#/usr/bin/echo 'sd-config-list="LSI     Logical Volume","disksort:false, cache-nonvolatile:true";' >> /tmp/sd.conf
+	#/usr/sbin/mount -F lofs /tmp/sd.conf /kernel/drv/sd.conf
+fi
+
+
+if [ "$RUN_MODE" == 'restore' ] || [ "$RUN_MODE" == 'post_restore' ] || [ "$RUN_MODE" == 'restore_parallel' ] || [ "$RUN_MODE" == 'backup' ] || [ "$RUN_MODE" == 'erase_ssd' ]
+then
+
+	TEXT_MODE_MENU="text-mode-menu"
+	/usr/bin/cp /usr/sbin/$TEXT_MODE_MENU /tmp
+	/usr/bin/chmod 755 /tmp/$TEXT_MODE_MENU
+	if [ "$RUN_MODE" == 'restore' ]
+	then
+		/usr/bin/sed -i 's/defaultchoice=1/defaultchoice=1; \/tmp\/script\/restore.sh/g' /tmp/$TEXT_MODE_MENU
+	elif [ "$RUN_MODE" == 'post_restore' ]
+	then
+		/usr/bin/sed -i 's/defaultchoice=1/defaultchoice=1; \/tmp\/script\/zpool_fix/g' /tmp/$TEXT_MODE_MENU
+	elif [ "$RUN_MODE" == 'restore_parallel' ]
+	then
+		#/usr/bin/sed -i 's/defaultchoice=1/defaultchoice=1; \/tmp\/script\/restore_parallel.sh/g' /tmp/$TEXT_MODE_MENU
+		echo "Enter restore_parallel mode"
+	elif [ "$RUN_MODE" == 'backup' ]
+	then
+		#/usr/bin/sed -i 's/defaultchoice=1/defaultchoice=1; \/tmp\/script\/backup.sh/g' /tmp/$TEXT_MODE_MENU
+
+		ACTIVE=`ipadm show-addr | grep igb | grep ok | grep dhcp | grep _ | head -n 1`
+		IF=`echo $ACTIVE | $AWK '{print $1}'`
+		IP=`echo $ACTIVE | $AWK '{print $4}'`
+		
+		echo $IF $IP > /tmp/network.log
+		
+		if false 
+		then
+			# Release DHCP IP
+			route add -net 192.168.234.0 192.168.91.2 -ifp igb0
+			ipadm delete-addr -r $IF
+		fi
+
+		/usr/bin/sed -i "s/defaultchoice=1/defaultchoice=1; \/tmp\/script\/backup.sh/g" /tmp/$TEXT_MODE_MENU
+		#/usr/bin/sed -i "s/defaultchoice=1/defaultchoice=1; \/tmp\/script\/network_setup.sh/g" /tmp/$TEXT_MODE_MENU
+
+		echo "Enter backup mode"
+	elif [ "$RUN_MODE" == 'erase_ssd' ]
+	then
+		/usr/bin/sed -i "s/defaultchoice=1/defaultchoice=1; \/tmp\/script\/erase_ssd.sh/g" /tmp/$TEXT_MODE_MENU
+        #echo "Enter erase_ssd mode"
+	fi
+	/usr/sbin/mount -F lofs /tmp/$TEXT_MODE_MENU /usr/sbin/$TEXT_MODE_MENU
+fi

@@ -1,0 +1,44 @@
+#!/sbin/sh
+
+SED=/usr/bin/sed
+AWK=/usr/bin/nawk
+ECHO=/usr/bin/echo
+
+/usr/sbin/zpool import > /tmp/zpool.log
+/usr/sbin/zpool import -f rpool
+
+if [ $? == 1 ]
+then
+	$ECHO "==============================================="
+	$ECHO "   Cannot import rpool. Press ENTER to reboot"
+	$ECHO "==============================================="
+	/usr/bin/read
+	/usr/sbin/reboot -p
+fi
+
+/usr/sbin/zpool import -f dpool
+
+if [ $? == 1 ]
+then
+	$ECHO "==============================================="
+	$ECHO "   Cannot import dpool. Press ENTER to reboot"
+	$ECHO "==============================================="
+	/usr/bin/read
+	/usr/sbin/reboot -p
+fi
+
+ARKO_ROOT=`/usr/sbin/zfs list | $SED -n '/rpool\/ROOT\/Arkologic/{p;}' | $AWK -F " " '{print $1}'`
+
+/usr/sbin/zfs set mountpoint=legacy $ARKO_ROOT
+/usr/sbin/mount -F zfs $ARKO_ROOT /mnt/pkg
+cp /etc/zfs/zpool.cache /mnt/pkg/etc/zfs
+cp /tmp/script/S99PostZpoolFix /mnt/pkg/etc/rc3.d
+/usr/sbin/umount /mnt/pkg
+/usr/sbin/zfs set mountpoint=/ $ARKO_ROOT
+
+$ECHO "==============================================="
+$ECHO "   Fixed pool label. Press ENTER to reboot     "
+$ECHO "==============================================="
+/usr/bin/read
+/usr/sbin/reboot -p
+
