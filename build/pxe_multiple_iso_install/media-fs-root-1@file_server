@@ -1,0 +1,36 @@
+PRTCONF=/usr/sbin/prtconf
+SED=/usr/bin/sed
+AWK=/usr/bin/nawk
+
+RUN_MODE=`$PRTCONF -v | $SED -n '/run_mode/{;n;p;}' | $AWK -F "'" '{print $2}'`
+IMAGE_NAME=`$PRTCONF -v | $SED -n '/image_name/{;n;p;}' | $AWK -F "'" '{print $2}'`
+ISO_VERSION=`$PRTCONF -v | $SED -n '/iso_version/{;n;p;}' | $AWK -F "'" '{print $2}'`
+if [ -z "$ISO_VERSION" ]
+then
+    ISO_PATH="/tmp/share/golenimage/arko.iso"
+else
+    ISO_PATH="/tmp/share/$ISO_VERSION.iso"
+fi
+if [ "$RUN_MODE" == 'restore' ] || [ "$RUN_MODE" == 'cd' ] || [ "$RUN_MODE" = 'post_restore' ] || [ "$RUN_MODE" = 'restore_parallel' ] || [ "$RUN_MODE" = 'backup' ] || [ "$RUN_MODE" = 'erase_ssd' ]
+then
+    echo "ISO PATH: $ISO_PATH"  > /dev/msglog
+	/usr/bin/cp $ISO_PATH /tmp/arko.iso
+	lofiadm -a /tmp/arko.iso
+	mount -F hsfs /dev/lofi/1 /.cdrom
+	echo Mounted ISO to /.cdrom > /dev/msglog
+
+	if [ "$RUN_MODE" == 'restore' ] || [ "$RUN_MODE" == 'restore_parallel' ]
+	then
+        if [ -z "$IMAGE_NAME" ]
+        then
+            IMAGE_NAME=backup_image   
+        fi
+
+		echo Copying backup folder > /dev/msglog
+		/usr/bin/cp -r /tmp/share/$IMAGE_NAME /tmp/backup_image
+		/usr/bin/echo $IMAGE_NAME > /tmp/backup_image/image_name
+		/sbin/umount -f /tmp/share
+	fi
+	
+	/sbin/umount -f /tmp/share
+fi

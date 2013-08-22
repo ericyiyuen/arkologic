@@ -1,0 +1,329 @@
+# dhcpd.conf
+#
+# Sample configuration file for ISC dhcpd
+#
+
+# option definitions common to all supported networks...
+#option domain-name "arkologic.com";
+option domain-name-servers 8.8.8.8, 8.8.4.4;
+
+default-lease-time 259200;
+max-lease-time 259200;
+
+# Use this to enble / disable dynamic dns updates globally.
+#ddns-update-style none;
+
+# If this DHCP server is the official DHCP server for the local
+# network, the authoritative directive should be uncommented.
+authoritative;
+
+# Use this to send dhcp log messages to a different log file (you also
+# have to hack syslog.conf to complete the redirection).
+log-facility local5;
+
+one-lease-per-client on;
+allow duplicates;
+
+# No service will be given on this subnet, but declaring it helps the 
+# DHCP server to understand the network topology.
+
+#subnet 192.168.98.0 netmask 255.255.255.0 {
+#}
+
+# This is a very basic subnet declaration.
+
+#subnet 192.168.91.0 netmask 255.255.255.0 {
+#  range 192.168.91.100 192.168.91.150;
+#  filename "pxelinux.0";
+#  next-server 192.168.91.1;
+#  option subnet-mask 255.255.255.0;
+#  option broadcast-address 192.168.91.255;
+#}
+
+# Failover config
+include "/etc/dhcp/dhcpd.failover";
+
+shared-network mynetwork {
+
+subnet 192.168.234.0 netmask 255.255.255.0 {
+  option routers 192.168.234.1;
+  option subnet-mask 255.255.255.0;
+  option broadcast-address 192.168.234.255;
+  pool {
+    failover peer "dhcp";
+    range 192.168.234.128 192.168.234.176;
+  }
+}
+
+# This allow PXE boot
+class "PXEClients" {
+  match if(substring(option vendor-class-identifier,0,9) = "PXEClient");
+}
+
+# This allow static dhcp ip assigned by port
+class "Port1" {
+ match if(substring(option agent.circuit-id,5,1) = 01);
+#  match if(suffix(option agent.circuit-id,1) = 00);
+#  match if( binary-to-ascii(10, 8, "", suffix(option agent.circuit-id,1)) = "1");
+}
+ 
+class "Port2" {
+  match if(substring(option agent.circuit-id,5,1) = 02);
+}
+
+class "Port3" {
+  match if(substring(option agent.circuit-id,5,1) = 03);
+}
+
+class "Port4" {
+  match if(substring(option agent.circuit-id,5,1) = 04);
+}
+
+class "Port13" {
+  match if(substring(option agent.circuit-id,5,1) = 13);
+}
+
+class "Port14" {
+  match if(substring(option agent.circuit-id,5,1) = 14);
+}
+
+subnet 192.168.91.0 netmask 255.255.255.0 {
+ 
+  option subnet-mask 255.255.255.0;
+  option broadcast-address 192.168.91.255;
+#  option router 192.168.91.2;
+
+  pool {
+    allow members of "PXEClients";
+    range 192.168.91.100 192.168.91.150;
+    filename "pxelinux.0";
+    next-server 192.168.91.1;
+  }
+  pool {
+    allow members of "Port1";
+    deny members of "PXEClients";
+    range 192.168.91.61 192.168.91.61;
+  }
+
+  pool {
+    allow members of "Port2";
+    deny members of "PXEClients";
+    range 192.168.91.62 192.168.91.62;
+  }
+
+  pool {
+    allow members of "Port3";
+    deny members of "PXEClients";
+    range 192.168.91.63 192.168.91.63;
+  }
+
+  pool {
+    allow members of "Port4";
+    deny members of "PXEClients";
+    range 192.168.91.64 192.168.91.64;
+  }
+
+  pool {
+    allow members of "Port13";
+    deny members of "PXEClients";
+    range 192.168.91.73 192.168.91.73;
+  }
+
+  pool {
+    allow members of "Port14";
+    deny members of "PXEClients";
+    range 192.168.91.74 192.168.91.74;
+#    fixed-address 192.168.91.74;
+  }
+
+#  pool {
+#    deny members of "PXEClients";
+#    deny members of "Port1";
+#    deny members of "Port2";
+#    deny members of "Port3";
+#    deny members of "Port4";
+#    deny members of "Port13";
+#    deny members of "Port14";
+#    range 192.168.91.20 192.168.91.20;
+#  }
+    #log ( debug, substring(option agent.circuit-id,5,1) );
+}
+
+}
+
+# This declaration allows BOOTP clients to get dynamic addresses,
+# which we don't really recommend.
+
+#subnet 10.254.239.32 netmask 255.255.255.224 {
+#  range dynamic-bootp 10.254.239.40 10.254.239.60;
+#  option broadcast-address 10.254.239.31;
+#  option routers rtr-239-32-1.example.org;
+#}
+
+# A slightly different configuration for an internal subnet.
+#subnet 10.5.5.0 netmask 255.255.255.224 {
+#  range 10.5.5.26 10.5.5.30;
+#  option domain-name-servers ns1.internal.example.org;
+#  option domain-name "internal.example.org";
+#  option routers 10.5.5.1;
+#  option broadcast-address 10.5.5.31;
+#  default-lease-time 600;
+#  max-lease-time 7200;
+#}
+
+# Hosts which require special configuration options can be listed in
+# host statements.   If no address is specified, the address will be
+# allocated dynamically (if possible), but the host-specific information
+# will still come from the host declaration.
+
+#host passacaglia {
+#  hardware ethernet 0:0:c0:5d:bd:95;
+#  filename "vmunix.passacaglia";
+#  server-name "toccata.fugue.com";
+#}
+#QA network hosts
+host QAServer17 {
+    option host-name "QAServer17";
+    hardware ethernet 0:25:90:94:91:94; 
+    fixed-address 192.168.234.17;
+}
+host QoS37 {
+    option host-name "QoS37";
+    hardware ethernet 0:25:90:95:e6:b4;
+    fixed-address 192.168.234.37;
+}
+host QAServer47 {
+    option host-name "QAServer47";
+    hardware ethernet 0:25:90:93:81:10;
+    fixed-address 192.168.234.47;
+}
+host QAServer67 {
+    option host-name "QAServer67";
+    hardware ethernet 0:25:90:94:90:44;
+    fixed-address 192.168.234.67;
+}
+host QAServer77 {
+    option host-name "QAServer77";
+    hardware ethernet 0:25:90:95:e7:4;
+    fixed-address 192.168.234.77;
+}
+host DevServer87 {
+    option host-name "DevServer87";
+    hardware ethernet 0:25:90:94:92:ac;
+    fixed-address 192.168.234.87;
+}
+host DevServer97 {
+    option host-name "DevServer97";
+    hardware ethernet 0:25:90:94:93:ac;
+    fixed-address 192.168.234.97;
+}
+host QAServer117 {
+    option host-name "QAServer117";
+    hardware ethernet 0:25:90:94:8f:e0;
+    fixed-address 192.168.234.117;
+}
+host QAServer177 {
+    option host-name "QAServer177";
+    hardware ethernet 0:25:90:94:3a:ec;
+    fixed-address 192.168.234.117;
+}
+host DevServer127 {
+    option host-name "DevServer127";
+    hardware ethernet 0:25:90:95:e5:10;
+    fixed-address 192.168.234.127;
+}
+host AutoDev197 {
+    option host-name "AutoDev197";
+    hardware ethernet 0:25:90:94:92:9c;
+    fixed-address 192.168.234.197;
+}
+host QAServer247 {
+    option host-name "QAServer247";
+    hardware ethernet 0:25:90:94:90:2c;
+    fixed-address 192.168.234.247;
+}
+host QAServer248 {
+    option host-name "QAServer248";
+    hardware ethernet 0:25:90:93:80:dc;
+    fixed-address 192.168.234.248;
+}
+host TestHost {
+    option host-name "TestHost";
+    hardware ethernet 9c:8e:99:37:75:41;
+    fixed-address 192.168.234.251;
+}
+
+# Fixed IP addresses can also be specified for hosts.   These addresses
+# should not also be listed as being available for dynamic assignment.
+# Hosts for which fixed IP addresses have been specified can boot using
+# BOOTP or DHCP.   Hosts for which no fixed address is specified can only
+# be booted with DHCP, unless there is an address range on the subnet
+# to which a BOOTP client is connected which has the dynamic-bootp flag
+# set.
+#host fantasia {
+#  hardware ethernet 08:00:07:26:c0:a5;
+#  fixed-address fantasia.fugue.com;
+#}
+
+# You can declare a class of clients and then do address allocation
+# based on that.   The example below shows a case where all clients
+# in a certain class get addresses on the 10.17.224/24 subnet, and all
+# other clients get addresses on the 10.0.29/24 subnet.
+
+#class "foo" {
+#  match if substring (option vendor-class-identifier, 0, 4) = "SUNW";
+#}
+
+#shared-network 224-29 {
+#  subnet 10.17.224.0 netmask 255.255.255.0 {
+#    option routers rtr-224.example.org;
+#  }
+#  subnet 10.0.29.0 netmask 255.255.255.0 {
+#    option routers rtr-29.example.org;
+#  }
+#  pool {
+#    allow members of "foo";
+#    range 10.17.224.10 10.17.224.250;
+#  }
+#  pool {
+#    deny members of "foo";
+#    range 10.0.29.10 10.0.29.230;
+#  }
+#}
+# Fixed IP addresses can also be specified for hosts.   These addresses
+# should not also be listed as being available for dynamic assignment.
+# Hosts for which fixed IP addresses have been specified can boot using
+# BOOTP or DHCP.   Hosts for which no fixed address is specified can only
+# be booted with DHCP, unless there is an address range on the subnet
+# to which a BOOTP client is connected which has the dynamic-bootp flag
+# set.
+#host fantasia {
+#  hardware ethernet 08:00:07:26:c0:a5;
+#  fixed-address fantasia.fugue.com;
+#}
+
+# You can declare a class of clients and then do address allocation
+# based on that.   The example below shows a case where all clients
+# in a certain class get addresses on the 10.17.224/24 subnet, and all
+# other clients get addresses on the 10.0.29/24 subnet.
+
+#class "foo" {
+#  match if substring (option vendor-class-identifier, 0, 4) = "SUNW";
+#}
+
+#shared-network 224-29 {
+#  subnet 10.17.224.0 netmask 255.255.255.0 {
+#    option routers rtr-224.example.org;
+#  }
+#  subnet 10.0.29.0 netmask 255.255.255.0 {
+#    option routers rtr-29.example.org;
+#  }
+#  pool {
+#    allow members of "foo";
+#    range 10.17.224.10 10.17.224.250;
+#  }
+#  pool {
+#    deny members of "foo";
+#    range 10.0.29.10 10.0.29.230;
+#  }
+#}

@@ -1,0 +1,11 @@
+#Failover specific configuration
+failover peer "dhcp" {
+secondary;
+address 192.168.234.252;
+port 647;
+peer address 192.168.234.253;
+peer port 647;
+max-response-delay 60;
+max-unacked-updates 10;
+load balance max seconds 3;
+}
