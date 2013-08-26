@@ -1,0 +1,52 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 [iso_version]" >&2
+    exit 1
+fi
+
+iso_version=$1
+tftpd_home="/tftpboot"
+boot_archive_path="uo/boot_archives/boot_archive.$iso_version.modified"
+adv_menu_234="$tftpd_home/pxelinux234.cfg/iso_install.menu"
+adv_menu_91="$tftpd_home/pxelinux.cfg/advance.menu"
+
+add_iso_to_234_pxe_menu() {
+    menu_item=`cat <<EOS
+LABEL ark_unityos_iso: $1\n\\
+MENU LABEL UnityOS ISO $1 Install\n\\
+KERNEL com32/mboot.c32 \n\\
+APPEND -solaris uo/platform/i86pc/kernel/amd64/kernel.$1 -v -m verbose -B install_server=192.168.234.27:/apool/isostore,run_mode=cd,iso_version=$1 --- uo/boot_archives/boot_archive.$1.modified \n\\
+
+EOS`
+   echo "$menu_item"
+   sed -i -e  "/^#arkologic isos/ a $menu_item" $2
+}
+add_iso_to_91_pxe_menu() {
+   menu_item=`cat <<EOS
+LABEL ark_unityos_iso: $1\n\\
+MENU LABEL UnityOS ISO $1 Install\n\\
+KERNEL com32/mboot.c32 \n\\
+APPEND -solaris uo/platform/i86pc/kernel/amd64/unix -v -m verbose -B install_server=192.168.91.1:/home/goldenimage,run_mode=cd,iso_version=$1 --- uo/boot_archives/boot_archive.$1.modifiede \n\\
+
+EOS`
+   echo "$menu_item"
+   sed -i -e  "/^#arkologic isos/ a $menu_item" $2
+}
+#Add to 192.168.234.0/24 PXE config
+if grep  "iso_version=$iso_version" $adv_menu_234 2>&1 1>/dev/null; then
+    echo "[192.168.234.0]Detected you have this iso menu already" >&2
+else
+    echo "[192.168.234.0]Adding this new iso menu..." >&2
+    add_iso_to_234_pxe_menu $iso_version $adv_menu_234
+fi
+
+exit 0
+#Add to 192.168.91.0/24 PXE config
+if grep  "iso_version=$iso_version" $adv_menu_91 2>&1 1>/dev/null; then
+    echo "[192.168.91.0]Detected you have this iso menu already" >&2
+else
+    echo "[192.168.91.0]Adding this new iso menu..." >&2
+    add_iso_to_91_pxe_menu $iso_version $adv_menu_91
+fi
+

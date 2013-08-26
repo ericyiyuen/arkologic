@@ -7,15 +7,12 @@
 # **********************************************************************
 
 iso_home=/apool/isostore
-kernel_home=/apool/isostore/kernels
 #find the recent built isos and process
-#iso_list=$(find /apool/isostore/ -mtime -1 -type f -name '*.iso')
-iso_list=$(find /apool/isostore/  -type f -name '*.iso')
+iso_list=$(find /apool/isostore/ -mtime -1 -type f -name '*.iso')
 
 for i in $iso_list; do
     iso_version=$(basename $i | sed -s 's/.iso//')
-    boot_archive_path="/boot_archives/boot_archive.$iso_version.modified"
-    kernel_path="$kernel_home/kernel.$iso_version"
+    boot_archive_path="/boot_archives/boot_archive.$iso_version.modified.restore"
 	arko_create_unity_os_boot_archive $i /boot_archives
     /usr/gnu/bin/cp -rf $boot_archive_path /apool/isostore/boot_archives
 done

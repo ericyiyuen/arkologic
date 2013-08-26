@@ -1,21 +1,19 @@
 #!/bin/bash
 #**********************************************************************
-# file: arko_create_boot_archives
+# file: arko_create_kernels
 # date: 2013-08-20 14:56
 # author: (c) by Eric Yuan - <ericy@arkologc.com>
 # description: grab recent built isos and extract their boot archives 
 # **********************************************************************
 
 iso_home=/apool/isostore
-kernel_home=/apool/isostore/kernels
 #find the recent built isos and process
 #iso_list=$(find /apool/isostore/ -mtime -1 -type f -name '*.iso')
-iso_list=$(find /apool/isostore/  -type f -name '*.iso')
+iso_list=$(find /apool/isostore/ -mtime -1000 -type f -name '*.iso')
 
 for i in $iso_list; do
     iso_version=$(basename $i | sed -s 's/.iso//')
-    boot_archive_path="/boot_archives/boot_archive.$iso_version.modified"
-    kernel_path="$kernel_home/kernel.$iso_version"
-	arko_create_unity_os_boot_archive $i /boot_archives
-    /usr/gnu/bin/cp -rf $boot_archive_path /apool/isostore/boot_archives
+    kernel_path="/kernels/kernel.$iso_version"
+	arko_copy_unity_os_kernel $i /kernels
+    /usr/gnu/bin/cp -rf $kernel_path /apool/isostore/kernels
 done

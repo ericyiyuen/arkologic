@@ -1,0 +1,33 @@
+#!/bin/bash
+#**********************************************************************
+# file: arko_copy_unity_os_kernel
+# date: 2013-08-15 14:56
+# author: (c) by Eric Yuan - <ericy@arkologc.com>
+# description: copy a unityos boot archive from an specific iso file
+# **********************************************************************
+
+if [ "$#" -lt 2 ]
+then
+    echo "Usage: $0 [iso_path] [destination_folder]" >&2
+    echo "    e.g. [$0 /mnt/isostore/1.99.0.20130814101412.iso /tmp]" >&2
+    exit 1
+fi
+mount_point=/mnt/unityos_iso
+kernel_path=boot/platform/i86pc/kernel/amd64/unix
+#remove trailing slash in $2
+[ -d $dest ] || { echo "$dest not exsited" >&2; exit 1; }
+#ensure dest folder trailing slash
+dest=${2%/}\/
+iso_file="$1"
+kernel_name=kernel.$(basename $iso_file | sed -e 's/\.\(iso\|ISO\)$//')
+kernel_dest="$dest$kernel_name"
+kernel_src="$mount_point/$kernel_path"
+umount  $mount_point  &>/dev/null
+lofiadm -d /dev/lofi/1  &>/dev/null 
+mkdir -p $mount_point
+echo "mounting $iso_file: $iso_file to $mount_point"
+mount -F hsfs -o ro `lofiadm -a $iso_file` $mount_point
+[ -f $kernel_src ] || { echo "$kernel_src not exsited" >&2; exit 1; }
+/bin/cp -f $kernel_src $kernel_dest
+lofiadm -d /dev/lofi/1  &>/dev/null 
+umount  $mount_point  &>/dev/null 

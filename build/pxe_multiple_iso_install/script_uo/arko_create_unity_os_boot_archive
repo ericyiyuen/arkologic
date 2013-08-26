@@ -13,9 +13,7 @@ then
     exit 1
 fi
 /usr/local/bin/arko_copy_unity_os_boot_archive $1 /tmp
-/usr/local/bin/arko_copy_unity_os_kernel $1 /tmp
 boot_archive_path=/tmp/boot_archive.$(basename $1 | sed -e 's/\.\(iso\|ISO\)$//')
-kernel_path=/tmp/kernel.$(basename $1 | sed -e 's/\.\(iso\|ISO\)$//')
 #echo $boot_archive_path
-/usr/local/bin/arko_hack_unity_os_boot_archive $boot_archive_path $kernel_path $2
+/usr/local/bin/arko_hack_unity_os_boot_archive $boot_archive_path $2
 

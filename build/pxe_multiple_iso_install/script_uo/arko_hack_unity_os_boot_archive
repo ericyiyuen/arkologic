@@ -6,32 +6,27 @@
 # description: copy a unityos boot archive from an specific iso file
 # **********************************************************************
 
-if [ "$#" -lt 3 ]
+if [ "$#" -lt 2 ]
 then
-    echo "Usage: $0 [boot_archive_path] [kernel_path] [destination_folder]" >&2
-    echo "    e.g. [$0 /tmp/boot_archive.1.99.0.20130814101412 /tmp/kernel.1.99.0.20130814101412 /boot_archives]" >&2
+    echo "Usage: $0 [boot_archive_path] [destination_folder]" >&2
+    echo "    e.g. [$0 /tmp/boot_archive.1.99.0.20130814101412 /boot_archives]" >&2
     exit 1
 fi
 mount_point=/mnt/boot_archive
 lofi_point=/dev/lofi/1
 boot_archive_path=boot/platform/i86pc/amd64/boot_archive 
-kernel_path=platform/i86pc/kernel/amd64/
 #remove trailing slash in $2
 [ -d $dest ] || { echo "$dest not exsited" >&2; exit 1; }
 #ensure dest folder trailing slash
-dest=${3%/}\/
+dest=${2%/}\/
 boot_archive_file="$1"
-kernel_file="$2"
 boot_archive_name=$(basename $boot_archive_file).modified
-boot_archive_dest="$dest$boot_archive_name"
-
-
 boot_archive_dest="$dest$boot_archive_name"
 /bin/cp $boot_archive_file $boot_archive_dest.gz
 /bin/rm -rf $boot_archive_dest
 echo "gunziping to $boot_archive_dest" >&2
 /usr/bin/gunzip  $boot_archive_dest.gz
-media_fs_root_patch=/boot_archives/media-fs-root.patch
+media_fs_root_patch=media-fs-root.patch
 media_fs_root_path=$mount_point/lib/svc/method/media-fs-root
 
 umount $mount_point &>/dev/null
@@ -45,10 +40,6 @@ mount $lofi_point $mount_point
 patch $media_fs_root_path < $media_fs_root_patch
 /bin/cp -rf $media_fs_root_path /tmp/media_fs_root
 
-echo "copying kernel file" >&2 
-/bin/cp -rf $kernel_file $mount_point/$kernel_path
-ls -al $mount_point/$kernel_path
-
 #copy tmpfs mount file
 echo "copying tmpfs file" >&2 
 /bin/cp -rf /usr/lib/fs/tmpfs $mount_point/usr/lib/fs
@@ -60,5 +51,5 @@ umount $mount_point &>/dev/null
 lofiadm -d $lofi_point &>/dev/null
 
 /usr/bin/gzip  $boot_archive_dest
-/usr/gnu/bin/mv $boot_archive_dest.gz  $boot_archive_dest
+/usr/gnu/bin/mv $boot_archive_dest.gz  $boot_archive_dest.restore
 exit 0
